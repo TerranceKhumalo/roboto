@@ -1,50 +1,56 @@
 import CardList from '../components/cardList';
 import SearchBox from '../components/searchBox';
-import { Component } from 'react';
 import Scroll from '../components/scroll';
+import { useState, useEffect } from 'react';
 import ErrorBoundary from '../components/errorBoundary';
+import { setSearchField } from '../actions';
+import { connect } from 'react-redux';
+ 
+const mapStateToProps = state=>{
+    return {
+        searchField: state.searchField
+    };
+}
+const mapDispatchToProps = (dispatch) =>{
+    return {
+        onSearchChange: (event) => dispatch(setSearchField(event.target.value))
+    }
+}
+    
 
+function App (props){
+    const { searchField, onSearchChange} = props;
 
-class App extends Component{
+    const [robots, setRobot] = useState([]);
+    // const [searchfield, setSearchfield] = useState("");
    
-   constructor(){
-       super();
-       this.state = {
-           "robots": [],
-           "searchfield": ""
-       }
-   }
+//     const onSearchChange = (event)=>{
+//         // this.setState({"searchfield": event.target.value}); Old way of react < 16.8
+//         setSearchfield(event.target.value);
+//    };
 
-    onSearchChange = (event)=>{
-        this.setState({"searchfield": event.target.value});
-   };
-
-   componentDidMount(){ 
+   useEffect(() => {
        fetch("https://jsonplaceholder.typicode.com/users")
         .then(response=>response.json())
-        .then(users=> this.setState({"robots": users}));
-   }
-   
-    render(){
-        const filterRobots = this.state.robots.filter((robot)=>{
-            return robot.name.toLowerCase().includes(this.state.searchfield);
-        });
+        .then(users=> setRobot(users));
+   }, []);
 
-        return (
-            <div className="tc">
-                <h1 className="f-subheadline">Roboto</h1>
-                <SearchBox searchChange={this.onSearchChange}/>
-                <Scroll>
-                    <ErrorBoundary>
-                        <CardList robots={filterRobots}/>
-                    </ErrorBoundary>
-                    
-                </Scroll>
-                
-            </div>
-        );
-    }
+   const filterRobots = robots.filter((robot)=>{
+       return robot.name.toLowerCase().includes(searchField);
+    });
+    
+    return (
+        <div className="tc">
+            <h1 className="f-subheadline">Roboto</h1>
+            <SearchBox searchChange={onSearchChange}/>
+            <Scroll>
+                <ErrorBoundary>
+                    <CardList robots={filterRobots}/>
+                </ErrorBoundary>
+            </Scroll>
+        </div>
+    );
     
 }
 
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
